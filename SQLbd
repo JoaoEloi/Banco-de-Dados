@@ -1,0 +1,79 @@
+-- 1. Crie uma View com os seguintes dados do cliente: Id, contato, Fax e o telefone.
+CREATE VIEW view_clientes AS 
+	SELECT 
+		ClienteID, 
+		Contato, 
+        Telefone, 
+        Fax 
+	FROM clientes;
+
+SELECT ClienteID, Contato, Telefone, Fax FROM clientes;
+
+-- 2. Liste os números de telefone dos clientes que não possuem fax.
+-- Faça isso de duas maneiras diferentes:
+-- a. Consultando a tabela clientes
+SELECT Telefone FROM clientes WHERE Fax LIKE "";
+
+-- b. Consultando a view do cliente
+SELECT Telefone FROM view_clientes WHERE Fax LIKE "";
+
+-- Fornecedores
+-- 1. Crie uma view com os seguintes dados do fornecedor: Id, contato,
+-- empresa e endereço. Para o endereço, pegue o endereço, cidade, código
+-- postal e país.
+CREATE VIEW view_fornecedores AS
+	SELECT ProvedorID, 
+		Empresa, 
+		Contato, 
+		concat(Endereco,", ", Cidade, ", ", CodigoPostal, ", ", Pais) AS Endereco 
+	FROM provedores;
+
+-- 2. Liste os fornecedores que moram na Avenida das Americanas, no Brasil. Faça de duas formas diferentes:
+-- a. Consultando a tabela de fornecedores
+	SELECT 
+		Empresa, 
+		Endereco 
+    FROM provedores 
+    WHERE Endereco LIKE "%Av. das Americanas%";
+
+-- b. Consultando a view do fornecedor
+	SELECT
+		Empresa, 
+		Endereco 
+	FROM view_fornecedores 
+    WHERE Endereco LIKE "%Av. das Americanas%";
+
+-- VIEW PARTE 2 - DESAFIO
+-- 1. Crie uma view dos produtos que será usada ​​para controle de estoque. Inclua o id e nome do produto, preço unitário arredondado sem decimais, 
+-- unidades em estoque e as unidades encomendadas. Inclua também uma nova coluna PRIORIDADE, com os seguintes valores:
+-- BAIXA se as unidades encomendadas forem zero
+-- MÉDIA se as unidades pedidas forem menores do que as unidades em estoque
+-- URGENTE se as unidades pedidas não dobrarem o número de unidades em estoque
+-- PRIORITÁRIO caso contrário
+SELECT * FROM view_produtos;
+
+CREATE VIEW view_produtos AS
+	SELECT 
+		ProdutoID, 
+		ProdutoNome, 
+		ROUND(PrecoUnitario, 0) AS PrecoUnitario,
+		UnidadesEstoque,
+		UnidadesPedidas,
+		CASE
+			WHEN UnidadesPedidas = 0 THEN "BAIXA"
+			WHEN UnidadesPedidas < UnidadesEstoque THEN "MÉDIA"
+			WHEN UnidadesPedidas < (UnidadesEstoque * 2) THEN "URGENTE"
+			ELSE "PRIORITÁRIO"
+		END AS PRIORIDADE
+	FROM produtos;
+
+-- 2.  É necessário um relatório para identificar problemas de estoque. Utilizando a view criada no exercício anterior, 
+-- indique, para cada prioridade, quantos produtos existem e seu preço médio. Não inclua prioridades para as que possuem menos de 5 produtos.
+
+SELECT 
+	PRIORIDADE, 
+	COUNT(ProdutoNome) AS QUANTIDADE, 
+	AVG(PrecoUnitario) AS MEDIA
+FROM view_produtos
+GROUP BY PRIORIDADE
+HAVING QUANTIDADE > 5;
